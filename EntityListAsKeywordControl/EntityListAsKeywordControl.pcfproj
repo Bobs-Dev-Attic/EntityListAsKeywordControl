@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.PowerApps.MSBuild.Pcf/1.0">
+  <PropertyGroup>
+    <Name>EntityListAsKeywordControl</Name>
+    <ProjectGuid>f4b76a6e-8a4b-4c60-a77c-9e2e4b2c4e5a</ProjectGuid>
+    <OutputPath>$(MSBuildThisFileDirectory)out\controls</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <AssemblyName>EntityListAsKeywordControl</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerApps.MSBuild.Pcf" Version="1.0.7" />
+  </ItemGroup>
+</Project>

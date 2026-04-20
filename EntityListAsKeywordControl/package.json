@@ -1,0 +1,40 @@
+{
+  "name": "entitylistaskeywordcontrol",
+  "version": "1.0.0",
+  "description": "PCF Control that replaces a related Entity list with a keyword tagging interface",
+  "scripts": {
+    "build": "pcf-scripts build",
+    "clean": "pcf-scripts clean",
+    "lint": "pcf-scripts lint",
+    "lint:fix": "pcf-scripts lint --fix",
+    "rebuild": "pcf-scripts rebuild",
+    "start": "pcf-scripts start",
+    "start:watch": "pcf-scripts start watch",
+    "refreshTypes": "pcf-scripts refreshTypes"
+  },
+  "keywords": [
+    "PCF",
+    "PowerApps",
+    "Dynamics365",
+    "Tags",
+    "Keywords"
+  ],
+  "author": "xrmatic",
+  "license": "MIT",
+  "dependencies": {
+    "@fluentui/react": "^8.120.4",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "@types/node": "^18.19.50",
+    "@types/powerapps-component-framework": "^1.3.4",
+    "@types/react": "^16.14.60",
+    "@types/react-dom": "^16.9.24",
+    "eslint": "^9.11.1",
+    "pcf-scripts": "^1",
+    "pcf-start": "^1",
+    "typescript": "^4.9.5"
+  }
+}

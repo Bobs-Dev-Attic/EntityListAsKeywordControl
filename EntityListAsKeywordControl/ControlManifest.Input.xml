@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<manifest>
+  <control namespace="XRMatic" constructor="EntityListAsKeywordControl" version="1.0.0" display-name-key="EntityListAsKeywordControl_Display_Key" description-key="EntityListAsKeywordControl_Desc_Key" control-type="virtual" >
+    <!--external-service-usage node declares whether your control is using external service or not,
+      if yes, this control will be considered as premium and you will be able to monetize it.
+      If your control is NOT using external service, please remove the "external-service-usage" element below. -->
+    <external-service-usage enabled="false">
+    </external-service-usage>
+    <!-- dataset node represents a set of entity records returned by a view or query.
+      dataset type allows you to access entity records from Dynamics 365.
+      For more information on dataset type controls, please refer:
+      https://docs.microsoft.com/en-us/powerapps/developer/component-framework/dataset-component-overview -->
+    <data-set name="sampleDataSet" display-name-key="DataSet_Display_Key">
+    </data-set>
+    <resources>
+      <code path="index.ts" order="1" />
+      <css path="css/EntityListAsKeywordControl.css" order="1" />
+    </resources>
+    <!-- UNCOMMENT TO ENABLE: use-custom-styling node to enable custom styling of PCF controls
+    <use-custom-styling>
+      true
+    </use-custom-styling> -->
+    <feature-usage>
+      <uses-feature name="WebAPI" required="true" />
+    </feature-usage>
+  </control>
+</manifest>
