@@ -163,6 +163,13 @@ If `tooltipMaxLines` is set below 1, the control automatically clamps it to `1` 
   - When users add a related row from standard model-driven form commands, Dataverse creates the relationship association automatically.
   - This control then reflects that new association through normal dataset refresh behavior.
 
+### Clarification on typed search/dropdown behavior
+
+- This control currently **does not render its own "add existing" type-ahead dropdown**.
+- Any typed search/dropdown behavior comes from the host model-driven app command bar experience.
+- The list rendered by this control is always the **currently associated records** returned by the configured view.
+- Because of that, records already associated are naturally what you see in this control; excluding already-associated records is a concern of the add-existing experience, not this tag-list renderer.
+
 ---
 
 ## Publish as unmanaged solution (scripted)
