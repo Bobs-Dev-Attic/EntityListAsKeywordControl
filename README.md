@@ -127,6 +127,10 @@ The view used initially is whatever view the app maker configures for the subgri
 
 If `tooltipMaxLines` is set below 1, the control automatically clamps it to `1` so users still get meaningful hover details.
 
+> ✅ Yes — `tooltipFieldName` can be a normal entity field such as `name` or `description`.
+> 
+> Note: for consistent results, include that field in the selected view/query columns so the dataset provides formatted values to the control.
+
 ---
 
 ## Developer notes (junior-friendly)
