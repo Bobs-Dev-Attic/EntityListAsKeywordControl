@@ -12,6 +12,69 @@
       https://docs.microsoft.com/en-us/powerapps/developer/component-framework/dataset-component-overview -->
     <data-set name="sampleDataSet" display-name-key="DataSet_Display_Key">
     </data-set>
+    <property
+      name="tagBackgroundColor"
+      display-name-key="TagBackgroundColor_Display_Key"
+      description-key="TagBackgroundColor_Desc_Key"
+      of-type="SingleLine.Text"
+      usage="input"
+      required="false" />
+    <property
+      name="tagBorderColor"
+      display-name-key="TagBorderColor_Display_Key"
+      description-key="TagBorderColor_Desc_Key"
+      of-type="SingleLine.Text"
+      usage="input"
+      required="false" />
+    <property
+      name="tagTextColor"
+      display-name-key="TagTextColor_Display_Key"
+      description-key="TagTextColor_Desc_Key"
+      of-type="SingleLine.Text"
+      usage="input"
+      required="false" />
+    <property
+      name="showTooltips"
+      display-name-key="ShowTooltips_Display_Key"
+      description-key="ShowTooltips_Desc_Key"
+      of-type="TwoOptions"
+      usage="input"
+      required="false" />
+    <property
+      name="tooltipMaxLines"
+      display-name-key="TooltipMaxLines_Display_Key"
+      description-key="TooltipMaxLines_Desc_Key"
+      of-type="Whole.None"
+      usage="input"
+      required="false" />
+    <property
+      name="tooltipFieldName"
+      display-name-key="TooltipFieldName_Display_Key"
+      description-key="TooltipFieldName_Desc_Key"
+      of-type="SingleLine.Text"
+      usage="input"
+      required="false" />
+    <property
+      name="tooltipCustomContent"
+      display-name-key="TooltipCustomContent_Display_Key"
+      description-key="TooltipCustomContent_Desc_Key"
+      of-type="Multiple"
+      usage="input"
+      required="false" />
+    <property
+      name="tooltipContentMode"
+      display-name-key="TooltipContentMode_Display_Key"
+      description-key="TooltipContentMode_Desc_Key"
+      of-type="SingleLine.Text"
+      usage="input"
+      required="false" />
+    <property
+      name="relationshipLookupField"
+      display-name-key="RelationshipLookupField_Display_Key"
+      description-key="RelationshipLookupField_Desc_Key"
+      of-type="SingleLine.Text"
+      usage="input"
+      required="false" />
     <resources>
       <code path="index.ts" order="1" />
       <css path="css/EntityListAsKeywordControl.css" order="1" />
