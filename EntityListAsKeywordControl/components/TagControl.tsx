@@ -1,12 +1,11 @@
 import * as React from "react";
 import { Spinner, SpinnerSize } from "@fluentui/react/lib/Spinner";
 import { MessageBar, MessageBarType } from "@fluentui/react/lib/MessageBar";
-import { initializeIcons } from "@fluentui/react/lib/Icons";
+import { Text } from "@fluentui/react/lib/Text";
+import { getTheme } from "@fluentui/react/lib/Styling";
 import { TagItem } from "./TagItem";
 import { ViewSelector } from "./ViewSelector";
 import { ViewInfo } from "../types/ViewInfo";
-
-initializeIcons();
 
 export interface TagRecord {
   id: string;
@@ -22,15 +21,20 @@ export interface TagControlProps {
   currentViewId: string;
   onViewChange: (viewId: string) => void;
   onRecordRemove?: (recordId: string) => void;
+  tagBackgroundColor?: string;
+  tagBorderColor?: string;
+  tagTextColor?: string;
+  showTooltips: boolean;
+  tooltipMaxLines: number;
 }
 
 /**
  * Builds tooltip content from all columns except the first one.
  */
-function buildTooltip(
+function buildTooltipLines(
   record: ComponentFramework.PropertyHelper.DataSetApi.EntityRecord,
   columns: ComponentFramework.PropertyHelper.DataSetApi.Column[]
-): string {
+): string[] {
   const tooltipLines: string[] = [];
   // Skip index 0 (first column = label)
   for (let i = 1; i < columns.length; i++) {
@@ -40,7 +44,7 @@ function buildTooltip(
       tooltipLines.push(`${col.displayName}: ${formattedValue}`);
     }
   }
-  return tooltipLines.join("\n");
+  return tooltipLines;
 }
 
 /**
@@ -63,12 +67,12 @@ function extractTags(
     const label = firstCol
       ? record.getFormattedValue(firstCol.name) || record.getRecordId()
       : record.getRecordId();
-    const tooltipContent = buildTooltip(record, sortedColumns);
+    const tooltipLines = buildTooltipLines(record, sortedColumns);
 
     return {
       id: record.getRecordId(),
       label,
-      tooltipLines: tooltipContent ? [tooltipContent] : [],
+      tooltipLines,
     };
   });
 }
@@ -81,15 +85,24 @@ export const TagControl: React.FC<TagControlProps> = ({
   currentViewId,
   onViewChange,
   onRecordRemove,
+  tagBackgroundColor,
+  tagBorderColor,
+  tagTextColor,
+  showTooltips,
+  tooltipMaxLines,
 }) => {
-  const tags = React.useMemo(() => extractTags(dataset), [dataset]);
+  const theme = getTheme();
+  const tags = React.useMemo(
+    () => extractTags(dataset),
+    [dataset.sortedRecordIds, dataset.records, dataset.columns]
+  );
 
   const containerStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "column",
     width: "100%",
     fontFamily: "Segoe UI, sans-serif",
-    padding: "8px",
+    padding: "12px",
     boxSizing: "border-box",
   };
 
@@ -99,13 +112,13 @@ export const TagControl: React.FC<TagControlProps> = ({
     alignItems: "flex-start",
     minHeight: "36px",
     padding: "4px",
-    border: "1px solid #E1DFDD",
+    border: `1px solid ${theme.semanticColors.inputBorder}`,
     borderRadius: "4px",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: theme.semanticColors.bodyBackground,
   };
 
   const emptyStyle: React.CSSProperties = {
-    color: "#605E5C",
+    color: theme.semanticColors.bodySubtext,
     fontSize: "13px",
     padding: "6px",
     fontStyle: "italic",
@@ -137,7 +150,7 @@ export const TagControl: React.FC<TagControlProps> = ({
         onViewChange={onViewChange}
         disabled={isDisabled}
       />
-      <div style={tagListStyle} role="list" aria-label="Tags">
+      <div style={tagListStyle} role="list" aria-label="Keyword tags">
         {tags.length === 0 ? (
           <span style={emptyStyle}>No records found.</span>
         ) : (
@@ -146,8 +159,8 @@ export const TagControl: React.FC<TagControlProps> = ({
               key={tag.id}
               label={tag.label}
               tooltipContent={
-                tag.tooltipLines.length > 0
-                  ? tag.tooltipLines.join("\n")
+                showTooltips && tag.tooltipLines.length > 0
+                  ? tag.tooltipLines.slice(0, tooltipMaxLines).join("\n")
                   : undefined
               }
               onRemove={
@@ -156,14 +169,17 @@ export const TagControl: React.FC<TagControlProps> = ({
                   : undefined
               }
               disabled={isDisabled}
+              tagBackgroundColor={tagBackgroundColor}
+              tagBorderColor={tagBorderColor}
+              tagTextColor={tagTextColor}
             />
           ))
         )}
       </div>
       {dataset.paging && dataset.paging.totalResultCount > dataset.paging.pageSize && (
-        <div style={{ fontSize: "12px", color: "#605E5C", marginTop: "4px" }}>
+        <Text variant="small" styles={{ root: { color: theme.semanticColors.bodySubtext, marginTop: "6px" } }}>
           Showing {tags.length} of {dataset.paging.totalResultCount} records.
-        </div>
+        </Text>
       )}
     </div>
   );
