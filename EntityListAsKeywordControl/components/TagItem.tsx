@@ -5,6 +5,7 @@ import { Icon } from "@fluentui/react/lib/Icon";
 export interface TagItemProps {
   label: string;
   tooltipContent?: string;
+  tooltipMode?: "text" | "html";
   onRemove?: () => void;
   disabled?: boolean;
   tagBackgroundColor?: string;
@@ -19,6 +20,7 @@ const tooltipHostStyles: Partial<ITooltipHostStyles> = {
 export const TagItem: React.FC<TagItemProps> = React.memo(({
   label,
   tooltipContent,
+  tooltipMode,
   onRemove,
   disabled,
   tagBackgroundColor,
@@ -85,9 +87,15 @@ export const TagItem: React.FC<TagItemProps> = React.memo(({
   );
 
   if (tooltipContent) {
+    const tooltipNode =
+      tooltipMode === "html" ? (
+        <div dangerouslySetInnerHTML={{ __html: tooltipContent }} />
+      ) : (
+        tooltipContent
+      );
     return (
       <TooltipHost
-        content={tooltipContent}
+        content={tooltipNode}
         styles={tooltipHostStyles}
         calloutProps={{ gapSpace: 4 }}
       >

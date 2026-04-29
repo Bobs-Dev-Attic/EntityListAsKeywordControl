@@ -106,6 +106,10 @@ The view used initially is whatever view the app maker configures for the subgri
 - `tagTextColor` (text, e.g. `#005A9E`)
 - `showTooltips` (two options, default `true`)
 - `tooltipMaxLines` (whole number, default `8`)
+- `tooltipFieldName` (text; logical name of record field to prioritize in tooltip)
+- `tooltipCustomContent` (multiline text or HTML snippet)
+- `tooltipContentMode` (`text` or `html`, default `text`)
+- `relationshipLookupField` (text; child lookup logical name used for disassociation in 1:N)
 
 ### Input behavior details
 
@@ -116,8 +120,16 @@ The view used initially is whatever view the app maker configures for the subgri
 | `tagTextColor` | Text | `#005A9E` | Text color inside tag pills |
 | `showTooltips` | TwoOptions | `true` | Whether additional column details appear on hover |
 | `tooltipMaxLines` | Whole Number | `8` | Max number of details shown in tooltip |
+| `tooltipFieldName` | Text | _empty_ | Adds a specific field value to tooltip content |
+| `tooltipCustomContent` | Multiline | _empty_ | Appends static custom tooltip content |
+| `tooltipContentMode` | Text | `text` | Renders custom tooltip content as text or HTML |
+| `relationshipLookupField` | Text | _empty_ | If set, remove action performs disassociation (`lookup = null`) |
 
 If `tooltipMaxLines` is set below 1, the control automatically clamps it to `1` so users still get meaningful hover details.
+
+> ✅ Yes — `tooltipFieldName` can be a normal entity field such as `name` or `description`.
+> 
+> Note: for consistent results, include that field in the selected view/query columns so the dataset provides formatted values to the control.
 
 ---
 
@@ -140,6 +152,16 @@ If `tooltipMaxLines` is set below 1, the control automatically clamps it to `1` 
 - OData filter values are escaped when querying views.
 - Async view-loading avoids mutating state if control has already been destroyed.
 - Handler functions are stable (no repeated `.bind(this)` allocation on every update).
+- Remove behavior supports **1:N disassociation** when `relationshipLookupField` is configured.
+
+### Relationship behavior (important)
+
+- **Remove record**:
+  - If `relationshipLookupField` is configured, the control uses `updateRecord(..., { lookup: null })`, which disassociates the related record for 1:N.
+  - If not configured, the control falls back to `deleteRecord` (physical delete).
+- **Add record**:
+  - When users add a related row from standard model-driven form commands, Dataverse creates the relationship association automatically.
+  - This control then reflects that new association through normal dataset refresh behavior.
 
 ---
 

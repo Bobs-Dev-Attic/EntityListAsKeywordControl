@@ -26,6 +26,9 @@ export interface TagControlProps {
   tagTextColor?: string;
   showTooltips: boolean;
   tooltipMaxLines: number;
+  tooltipFieldName?: string;
+  tooltipCustomContent?: string;
+  tooltipContentMode: "text" | "html";
 }
 
 /**
@@ -51,7 +54,9 @@ function buildTooltipLines(
  * Extracts tag records from the PCF dataset.
  */
 function extractTags(
-  dataset: ComponentFramework.PropertyTypes.DataSet
+  dataset: ComponentFramework.PropertyTypes.DataSet,
+  tooltipFieldName?: string,
+  tooltipCustomContent?: string
 ): TagRecord[] {
   const { sortedRecordIds, records, columns } = dataset;
   if (!sortedRecordIds || sortedRecordIds.length === 0) {
@@ -68,6 +73,15 @@ function extractTags(
       ? record.getFormattedValue(firstCol.name) || record.getRecordId()
       : record.getRecordId();
     const tooltipLines = buildTooltipLines(record, sortedColumns);
+    if (tooltipFieldName) {
+      const tooltipFieldValue = record.getFormattedValue(tooltipFieldName);
+      if (tooltipFieldValue) {
+        tooltipLines.unshift(tooltipFieldValue);
+      }
+    }
+    if (tooltipCustomContent) {
+      tooltipLines.push(tooltipCustomContent);
+    }
 
     return {
       id: record.getRecordId(),
@@ -90,11 +104,14 @@ export const TagControl: React.FC<TagControlProps> = ({
   tagTextColor,
   showTooltips,
   tooltipMaxLines,
+  tooltipFieldName,
+  tooltipCustomContent,
+  tooltipContentMode,
 }) => {
   const theme = getTheme();
   const tags = React.useMemo(
-    () => extractTags(dataset),
-    [dataset.sortedRecordIds, dataset.records, dataset.columns]
+    () => extractTags(dataset, tooltipFieldName, tooltipCustomContent),
+    [dataset.sortedRecordIds, dataset.records, dataset.columns, tooltipFieldName, tooltipCustomContent]
   );
 
   const containerStyle: React.CSSProperties = {
@@ -163,6 +180,7 @@ export const TagControl: React.FC<TagControlProps> = ({
                   ? tag.tooltipLines.slice(0, tooltipMaxLines).join("\n")
                   : undefined
               }
+              tooltipMode={tooltipContentMode}
               onRemove={
                 !isDisabled && onRecordRemove
                   ? () => onRecordRemove(tag.id)

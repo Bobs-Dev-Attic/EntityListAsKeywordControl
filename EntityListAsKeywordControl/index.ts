@@ -86,6 +86,12 @@ export class EntityListAsKeywordControl
       showTooltips: context.parameters.showTooltips.raw ?? true,
       // Guard lower bound so a misconfigured value never hides all tooltip content.
       tooltipMaxLines: Math.max(1, context.parameters.tooltipMaxLines.raw ?? 8),
+      tooltipFieldName: context.parameters.tooltipFieldName.raw || undefined,
+      tooltipCustomContent: context.parameters.tooltipCustomContent.raw || undefined,
+      tooltipContentMode:
+        context.parameters.tooltipContentMode.raw?.toLowerCase() === "html"
+          ? ("html" as const)
+          : ("text" as const),
     };
 
     return React.createElement(TagControl, props);
@@ -201,8 +207,18 @@ export class EntityListAsKeywordControl
     if (!entityType) {
       return;
     }
-    this._context.webAPI
-      .deleteRecord(entityType, recordId)
+    const relationshipLookupField =
+      this._context.parameters.relationshipLookupField.raw;
+
+    // For 1:N relationships, nulling the lookup disassociates the child record
+    // without deleting it. If no lookup field is configured, we fallback to delete.
+    const removePromise = relationshipLookupField
+      ? this._context.webAPI.updateRecord(entityType, recordId, {
+          [relationshipLookupField]: null,
+        })
+      : this._context.webAPI.deleteRecord(entityType, recordId);
+
+    removePromise
       .then(() => {
         dataset.refresh();
       })
