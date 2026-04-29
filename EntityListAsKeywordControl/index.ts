@@ -1,7 +1,11 @@
 import { IInputs, IOutputs } from "./generated/ManifestTypes";
 import * as React from "react";
+import { initializeIcons } from "@fluentui/react/lib/Icons";
 import { TagControl } from "./components/TagControl";
 import { ViewInfo } from "./types/ViewInfo";
+
+let iconsInitialized = false;
+// ^ Module-level flag: when multiple control instances are on one form, we only initialize once.
 
 export class EntityListAsKeywordControl
   implements ComponentFramework.ReactControl<IInputs, IOutputs>
@@ -10,10 +14,12 @@ export class EntityListAsKeywordControl
   private _notifyOutputChanged!: () => void;
   private _availableViews: ViewInfo[];
   private _currentViewId: string;
+  private _isDestroyed: boolean;
 
   constructor() {
     this._availableViews = [];
     this._currentViewId = "";
+    this._isDestroyed = false;
   }
 
   /**
@@ -33,6 +39,11 @@ export class EntityListAsKeywordControl
     notifyOutputChanged: () => void,
     state: ComponentFramework.Dictionary
   ): void {
+    if (!iconsInitialized) {
+      initializeIcons();
+      iconsInitialized = true;
+    }
+
     this._context = context;
     this._notifyOutputChanged = notifyOutputChanged;
     this._currentViewId = context.parameters.sampleDataSet.getViewId();
@@ -64,10 +75,17 @@ export class EntityListAsKeywordControl
       isDisabled: context.mode.isControlDisabled,
       availableViews: this._availableViews,
       currentViewId: this._currentViewId,
-      onViewChange: this._handleViewChange.bind(this),
+      onViewChange: this._handleViewChange,
       onRecordRemove: context.mode.isControlDisabled
         ? undefined
-        : this._handleRecordRemove.bind(this),
+        : this._handleRecordRemove,
+      tagBackgroundColor: context.parameters.tagBackgroundColor.raw || undefined,
+      tagBorderColor: context.parameters.tagBorderColor.raw || undefined,
+      tagTextColor: context.parameters.tagTextColor.raw || undefined,
+      // If maker leaves these empty, we fall back to practical defaults.
+      showTooltips: context.parameters.showTooltips.raw ?? true,
+      // Guard lower bound so a misconfigured value never hides all tooltip content.
+      tooltipMaxLines: Math.max(1, context.parameters.tooltipMaxLines.raw ?? 8),
     };
 
     return React.createElement(TagControl, props);
@@ -87,7 +105,7 @@ export class EntityListAsKeywordControl
    * for cleanup (e.g. cancelling asynchronous requests or removing event listeners).
    */
   public destroy(): void {
-    // No-op: React handles cleanup of the virtual DOM
+    this._isDestroyed = true;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -108,19 +126,21 @@ export class EntityListAsKeywordControl
         return;
       }
 
+      const escapedEntityType = entityType.replace(/'/g, "''");
+
       // Fetch system views (savedquery) for the entity type
       const systemViewsResult = await context.webAPI.retrieveMultipleRecords(
         "savedquery",
-        `?$select=savedqueryid,name&$filter=returnedtypecode eq '${entityType}' and statecode eq 0 and querytype eq 0&$orderby=name asc`
+        `?$select=savedqueryid,name&$filter=returnedtypecode eq '${escapedEntityType}' and statecode eq 0 and querytype eq 0&$orderby=name asc`
       );
 
       // Fetch personal views (userquery) for the entity type
       const personalViewsResult = await context.webAPI.retrieveMultipleRecords(
         "userquery",
-        `?$select=userqueryid,name&$filter=returnedtypecode eq '${entityType}' and statecode eq 0&$orderby=name asc`
+        `?$select=userqueryid,name&$filter=returnedtypecode eq '${escapedEntityType}' and statecode eq 0&$orderby=name asc`
       );
 
-      const views: ViewInfo[] = [
+      const rawViews: ViewInfo[] = [
         ...systemViewsResult.entities.map((v) => ({
           id: v["savedqueryid"] as string,
           name: v["name"] as string,
@@ -133,6 +153,20 @@ export class EntityListAsKeywordControl
         })),
       ];
 
+      const dedupedViews = new Map<string, ViewInfo>();
+      rawViews.forEach((view) => {
+        if (!dedupedViews.has(view.id)) {
+          dedupedViews.set(view.id, view);
+        }
+      });
+
+      const views = [...dedupedViews.values()].sort((a, b) =>
+        a.name.localeCompare(b.name)
+      );
+
+      if (this._isDestroyed) {
+        return;
+      }
       this._availableViews = views;
 
       // Trigger a re-render with the loaded views
@@ -148,20 +182,20 @@ export class EntityListAsKeywordControl
    * Uses a type cast to access changeViewById, which is available at runtime
    * in the PCF framework but not reflected in the community type definitions.
    */
-  private _handleViewChange(viewId: string): void {
+  private _handleViewChange = (viewId: string): void => {
     this._currentViewId = viewId;
     // changeViewById is a runtime-available method on DataSet in PCF; cast to any
     // since it is missing from the @types/powerapps-component-framework type stubs.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (this._context.parameters.sampleDataSet as any).changeViewById(viewId);
-  }
+  };
 
   /**
    * Handles removal of a tag (disassociation of a record).
    * Disassociation is performed via the WebAPI deleteRecord call,
    * which removes the related link for 1:N or N:N relationship datasets.
    */
-  private _handleRecordRemove(recordId: string): void {
+  private _handleRecordRemove = (recordId: string): void => {
     const dataset = this._context.parameters.sampleDataSet;
     const entityType = dataset.getTargetEntityType();
     if (!entityType) {
@@ -176,6 +210,5 @@ export class EntityListAsKeywordControl
         // If deletion fails, still refresh to keep the UI state consistent
         dataset.refresh();
       });
-  }
+  };
 }
-

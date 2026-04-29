@@ -7,28 +7,34 @@ export interface TagItemProps {
   tooltipContent?: string;
   onRemove?: () => void;
   disabled?: boolean;
+  tagBackgroundColor?: string;
+  tagBorderColor?: string;
+  tagTextColor?: string;
 }
 
 const tooltipHostStyles: Partial<ITooltipHostStyles> = {
   root: { display: "inline-block" },
 };
 
-export const TagItem: React.FC<TagItemProps> = ({
+export const TagItem: React.FC<TagItemProps> = React.memo(({
   label,
   tooltipContent,
   onRemove,
   disabled,
+  tagBackgroundColor,
+  tagBorderColor,
+  tagTextColor,
 }) => {
   const tagStyle: React.CSSProperties = {
     display: "inline-flex",
     alignItems: "center",
-    backgroundColor: "#EFF6FC",
-    border: "1px solid #C7E0F4",
+    backgroundColor: tagBackgroundColor || "#EFF6FC",
+    border: `1px solid ${tagBorderColor || "#C7E0F4"}`,
     borderRadius: "16px",
     padding: "4px 10px",
     margin: "4px",
     fontSize: "13px",
-    color: "#005A9E",
+    color: tagTextColor || "#005A9E",
     fontFamily: "Segoe UI, sans-serif",
     maxWidth: "240px",
     cursor: "default",
@@ -63,6 +69,7 @@ export const TagItem: React.FC<TagItemProps> = ({
       </span>
       {!disabled && onRemove && (
         <button
+          type="button"
           style={removeButtonStyle}
           onClick={(e) => {
             e.stopPropagation();
@@ -90,4 +97,4 @@ export const TagItem: React.FC<TagItemProps> = ({
   }
 
   return tagContent;
-};
+});
