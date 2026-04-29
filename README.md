@@ -11,6 +11,14 @@ A **PowerApps Component Framework (PCF)** custom control for **Dynamics 365 / Po
 - 🔄 **View selector** – Users can switch between any available system or personal view for the related entity
 - ♿ **Accessible** – ARIA roles, keyboard-navigable remove buttons, high-contrast mode support
 - ⚡ **Fluent UI** – Consistent with the Dynamics 365 / Power Platform design language
+- 🎨 **Maker customisation** – Configurable tag colours and tooltip behavior from control inputs
+
+### Capability summary
+
+- Handles both **system views** (`savedquery`) and **personal views** (`userquery`) and merges them in one dropdown.
+- Supports **record disassociation/removal** from the related list directly in the UI.
+- Includes **paging awareness** (shows "X of Y" metadata when records exceed page size).
+- Works well with **multiple control instances** on the same form (single Fluent icon init + stable handlers).
 
 ---
 
@@ -90,6 +98,89 @@ The control is a **dataset** PCF control. Add it to a form subgrid:
 4. Set the control as the default for Web / Tablet / Phone as needed
 
 The view used initially is whatever view the app maker configures for the subgrid. At runtime the user can switch views via the dropdown inside the control.
+
+### Optional input properties
+
+- `tagBackgroundColor` (text, e.g. `#EFF6FC`)
+- `tagBorderColor` (text, e.g. `#C7E0F4`)
+- `tagTextColor` (text, e.g. `#005A9E`)
+- `showTooltips` (two options, default `true`)
+- `tooltipMaxLines` (whole number, default `8`)
+- `tooltipFieldName` (text; logical name of record field to prioritize in tooltip)
+- `tooltipCustomContent` (multiline text or HTML snippet)
+- `tooltipContentMode` (`text` or `html`, default `text`)
+- `relationshipLookupField` (text; child lookup logical name used for disassociation in 1:N)
+
+### Input behavior details
+
+| Property | Type | Default | What it controls |
+|---|---|---:|---|
+| `tagBackgroundColor` | Text | `#EFF6FC` | Fill color for each tag pill |
+| `tagBorderColor` | Text | `#C7E0F4` | Border color for each tag pill |
+| `tagTextColor` | Text | `#005A9E` | Text color inside tag pills |
+| `showTooltips` | TwoOptions | `true` | Whether additional column details appear on hover |
+| `tooltipMaxLines` | Whole Number | `8` | Max number of details shown in tooltip |
+| `tooltipFieldName` | Text | _empty_ | Adds a specific field value to tooltip content |
+| `tooltipCustomContent` | Multiline | _empty_ | Appends static custom tooltip content |
+| `tooltipContentMode` | Text | `text` | Renders custom tooltip content as text or HTML |
+| `relationshipLookupField` | Text | _empty_ | If set, remove action performs disassociation (`lookup = null`) |
+
+If `tooltipMaxLines` is set below 1, the control automatically clamps it to `1` so users still get meaningful hover details.
+
+---
+
+## Developer notes (junior-friendly)
+
+### Data mapping rules
+
+- The **first visible column** of the selected view becomes the tag label.
+- Remaining columns are converted to `Display Name: Formatted Value` lines in the tooltip.
+- Empty/null formatted values are skipped.
+
+### Where key logic lives
+
+- `index.ts`: PCF lifecycle entry point (init/update/destroy), view loading, and WebAPI actions.
+- `components/TagControl.tsx`: Transforms dataset records into tags and renders list + view selector.
+- `components/TagItem.tsx`: Visual tag pill, tooltip host, and remove action.
+
+### Security/stability guardrails in code
+
+- OData filter values are escaped when querying views.
+- Async view-loading avoids mutating state if control has already been destroyed.
+- Handler functions are stable (no repeated `.bind(this)` allocation on every update).
+- Remove behavior supports **1:N disassociation** when `relationshipLookupField` is configured.
+
+### Relationship behavior (important)
+
+- **Remove record**:
+  - If `relationshipLookupField` is configured, the control uses `updateRecord(..., { lookup: null })`, which disassociates the related record for 1:N.
+  - If not configured, the control falls back to `deleteRecord` (physical delete).
+- **Add record**:
+  - When users add a related row from standard model-driven form commands, Dataverse creates the relationship association automatically.
+  - This control then reflects that new association through normal dataset refresh behavior.
+
+---
+
+## Publish as unmanaged solution (scripted)
+
+Use the script below to build, pack, and import this control as an unmanaged solution:
+
+```bash
+chmod +x scripts/publish-unmanaged.sh
+scripts/publish-unmanaged.sh \
+  --publisher-name "Contoso" \
+  --publisher-prefix "cts" \
+  --solution-name "EntityKeywordTags" \
+  --solution-version "1.0.0.0" \
+  --environment-url "https://org.crm.dynamics.com"
+```
+
+What the script does:
+1. Runs `npm ci` + `npm run build` for the PCF control.
+2. Creates a temporary solution project with `pac solution init`.
+3. Adds the PCF project reference.
+4. Builds and locates the unmanaged zip.
+5. Imports the zip to your target Dataverse environment and publishes changes.
 
 ---
 
